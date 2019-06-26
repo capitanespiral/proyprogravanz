@@ -2,60 +2,59 @@
 #include <iostream>
 #include <cmath>
 #include <fstream>
+#include <string>
+#include <dirent.h>
 
-double sigm(double x){
-	double a=1./(1+exp(-x));
-	return a;
-}
 
-double dsigm(double x){
-	double a= exp(-x)/((1+exp(-x))*(1+exp(-x)));
-	return a;
-}
-
-double error(const matriz<double> &y_e,const matriz<double> &y_o){
-	matriz<double> res=y_e-y_o;
-	double acum=0;
-	for(int i=0;i<res.fila();++i){
-		for(int j=0;j<res.colu();++j){
-			acum+=res(i,j)*res(i,j);
-	}
-}
-	acum/=res.fila();
-	return acum;
-
-}
-
-int main(){
-  vector<double> v={2,4,5,2,1,-2};
-vector<double> w={1,2,3,4,5,6};
-matriz<double> h(w,2);
-  matriz<double> m(v,2);
-  //cout<<m<<endl;
-  /*cout<<"yes"<<endl;
-  matriz<neural_l> poto=red(m,activa);*/
- // neural_l andale(2,3,activa,activa);
-//neural_l poto(3,2,activa1,activa);
-  /*cout<<andale<<endl;
-cout<<andale[0]<<endl;
-	andale(andale[0]);
-cout<<andale[0]<<endl;
-  cout<<"YES"<<endl;
-  cout<<poto<<endl;
-	cout<<poto(1,0)[1]<<endl;
-poto(1,0)(poto(1,0)[1]);
-cout<<poto(1,0)[1]<<endl;
-cout<<andale.axon(0)<<endl;
-cout<<andale.axon(1)<<endl;*/
-//matriz<neural_l> n=andale+poto;
-//cout<<n<<endl;
-//cout<<forward(n,m)<<endl;
-//for(int i=0;i<10;++i){
-//matriz<double> a=train(n,m,h,error);
-//cout<<a<<endl;}
-ofstream archivo("sigmo.dat");
-for(double i=-20;i<20;i+=0.1){
-	archivo<<i<<' '<<sigm(double(i))<<' '<<dsigm(double(i))<<endl;
-}
+int main(int argc,char* argv[]){
+  ifstream archivix(argv[1]);
+  vector<double> v,w;double x;
+  while(archivix>>x)
+    v.push_back(x);
+  archivix.close();
+  ifstream archiviy(argv[2]);
+  while(archiviy>>x)
+    w.push_back(x);
+  archiviy.close();
+  matriz<double> xs(v,2);
+  matriz<double> ys(w,1);
+  vector<int> h={2,4,6,1};
+  matriz<int> soonred(h,1);
+  matriz<neural_l> malla=red(soonred,sigm,dsigm);
+  matriz<double> res,ver,check,res_check;double error;
+  int i=0;
+  while(true){
+    DIR* dir = opendir(("evolucion_red_"+to_string(i)).c_str());
+    if(dir) {++i;closedir(dir);continue;}
+    else break;
+  }
+  string carpeta="evolucion_red_"+to_string(i);
+  string xx=argv[1];string yy=argv[2];
+  system(("mkdir "+carpeta).c_str());
+  system(("paste "+xx+" "+yy+"> ./"+carpeta+"/datosjuntos_"+to_string(i)+".dat").c_str());
+  ofstream archivo("./"+carpeta+"/errorcito_"+to_string(i)+".dat");
+  for(int i=0;i<=2500;++i){
+    if(i%25==0){
+      check=mat_rand(1000,2,-1,1);
+      res_check=forward(malla,check);
+      string a=to_string(i);
+      if(i<10) a="000"+a;
+      else if(10<=i && i<100) a="00"+a;
+      else if(100<=i && i<1000) a="0"+a;
+      ofstream archivote("./"+carpeta+"/Estado_"+a+".dat");
+      for(int j=0;j<check.fila();++j){
+	archivote<<check(j,0)<<' '<<check(j,1)<<' '<<res_check(j,0)<<endl;
+      }
+      archivote.close();
+    }
+    res=train(malla,xs,ys,d_e_cuad_m,atof(argv[3]));
+    if(i%100==0){
+      ver=cat(ys,res);
+      cout<<ver<<endl;
+    }
+    error=e_cuad_m(res,ys);
+    archivo<<i<<' '<<error<<endl;
+  }
+  archivo.close();
   return 0;
 }

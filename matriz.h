@@ -467,6 +467,7 @@ matriz<T> matriz<T>::fila(const matriz<T> &m){
   return res;
 }
 
+//Multiplica los elementos de igual indice
 template<class T>
 matriz<T> mul_ele(const matriz<T> &m,const matriz<T> &n){
 	matriz<T> res;

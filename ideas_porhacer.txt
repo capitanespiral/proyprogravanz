@@ -1,0 +1,10 @@
+Modalidad over-fiting incluida.
+Creador de formas de datos?
+mejorar makefile para ordenar programitas a usar
+guardar estados de redes neuronales y poder "leerlos" (exportar e importar redes)
+mas funciones de activacion
+modulacion de datos de entrada
+probar con funciones
+herramienta "normalizadora"
+funcion de prueba de progra
+desentrañar parte matematica y hacer informe

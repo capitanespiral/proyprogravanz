@@ -80,6 +80,7 @@ matriz<neural_l> neural_l::operator+(neural_l n){
 
 ostream & operator<<(ostream &os,const neural_l &n){return n.print(os);}
 
+//recibe matriz columna
 matriz<neural_l> red(const matriz<int> &m,double (*f)(double),double (*g)(double)){
   neural_l defaul;matriz<neural_l> res(m.fila()-1,1,defaul);
   for(int i=0;i<m.fila()-1;++i){
@@ -101,7 +102,7 @@ matriz<double> forward(const matriz<neural_l> &n,const matriz<double> &x){
   return temp; //La devuelvo en formato como se recibio, fila por dato y columna por dimension de dato
 }
 
-matriz<double> train(matriz<neural_l> &n,const matriz<double> &x,const matriz<double> &y,double (*derror)(const matriz<double> &,const matriz<double> &),double paso){
+matriz<double> train(matriz<neural_l> &n,const matriz<double> &x,const matriz<double> &y,matriz<double> (*derror)(const matriz<double> &,const matriz<double> &),double paso){
   vector<double> erro;double err;//Para guardar cada error
   //Forward
   matriz<double> temp;matriz<matriz<double>> vals(3,n.fila()+1,temp);//matriz donde guardare los W,z's y los a's (resultados de suma ponderada +b y de activarlos) respectivamente (filas). El primer elemento son los X (en tercera fila)
@@ -117,7 +118,7 @@ matriz<double> train(matriz<neural_l> &n,const matriz<double> &x,const matriz<do
   //Backward
   clean(temp);matriz<matriz<double>> deltas(1,n.fila(),temp);
   //Calculo primera delta (de la ultima capa)
-  deltas(0,n.fila()-1)=(*derror)(y,vals(2,vals.colu()-1))*n(n.fila()-1,0)(vals(1,vals.colu()-1),1);
+  deltas(0,n.fila()-1)=mul_ele((*derror)(vals(2,vals.colu()-1),y),n(n.fila()-1,0)(vals(1,vals.colu()-1),1));
   //Modifico valores de output capa
   n(n.fila()-1,0)[0]=n(n.fila()-1,0)[0]-paso*prom(deltas(0,n.fila()-1));
   n(n.fila()-1,0)[1]=n(n.fila()-1,0)[1]-paso*(vals(2,n.fila()-1).tras()*deltas(0,n.fila()-1));
@@ -129,4 +130,28 @@ matriz<double> train(matriz<neural_l> &n,const matriz<double> &x,const matriz<do
   return vals(2,vals.colu()-1);
 }
 
+double sigm(double x){
+  double a=1./(1+exp(-x));
+  return a;
+}
 
+double dsigm(double x){
+  double a= exp(-x)/((1+exp(-x))*(1+exp(-x)));
+  return a;
+}
+
+double e_cuad_m(const matriz<double> &y_o,const matriz<double> &y_e){
+  matriz<double> res=y_o-y_e;
+  double acum=0;
+  for(int i=0;i<res.fila();++i){
+    for(int j=0;j<res.colu();++j){
+      acum+=res(i,j)*res(i,j);
+    }
+  }
+  acum/=0.5*res.fila();
+  return acum;
+}
+
+matriz<double> d_e_cuad_m(const matriz<double> &y_o,const matriz<double> &y_e){
+  return (y_o-y_e);
+}

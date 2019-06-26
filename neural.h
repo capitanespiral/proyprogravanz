@@ -31,6 +31,19 @@ ostream & operator<<(ostream &,const neural_l &);
 
 matriz<neural_l> red(const matriz<int> &,double (*f)(double),double (*g)(double)); //Crea red, recibe vector columna donde cada dimension es capa (excepto la primera que son valores de input) asi que size -1 seran las capas y cada numero cantidad de neuronas.Rcda que primer y ultimo valor es input y output. (no se crea la capa de "input")
 matriz<double> forward(const matriz<neural_l> &,const matriz<double> &); //red, valores de entrada. escupe valores de salida.Cada fila un dato, cada columna componente de cada dato.
-matriz<double> train(matriz<neural_l> &,const matriz<double> &,const matriz<double> &,double (*derror)(const matriz<double> &,const matriz<double> &),double=0.5);//red,input, output esperados, derivada de error,learning rate. (el error se calculará por fuera, pues esto vomita el resultado)
+matriz<double> train(matriz<neural_l> &,const matriz<double> &,const matriz<double> &,matriz<double> (*derror)(const matriz<double> &,const matriz<double> &),double=0.5);//red,input, output esperados, derivada de error,learning rate. (el error se calculará por fuera, pues esto vomita el resultado)
+
+//funcion sigmoide
+double sigm(double);
+
+//Su derivada
+double dsigm(double);
+
+//error cuad medio
+double e_cuad_m(const matriz<double> &,const matriz<double> &);
+
+//su derivada
+
+matriz<double> d_e_cuad_m(const matriz<double> &,const matriz<double> &);
 
 #endif
