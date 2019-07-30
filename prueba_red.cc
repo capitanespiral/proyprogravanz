@@ -1,41 +1,29 @@
-#include "neural.h"
-#include <iostream>
+#include "neural.hh"
 #include <cmath>
-#include <fstream>
-#include <string>
-#include <dirent.h>
 
 
 int main(int argc,char* argv[]){
-  ifstream archivix(argv[1]);
-  vector<double> v,w;double x;
-  while(archivix>>x)
-    v.push_back(x);
-  archivix.close();
-  ifstream archiviy(argv[2]);
-  while(archiviy>>x)
-    w.push_back(x);
-  archiviy.close();
-  matriz<double> xs(v,2);
-  matriz<double> ys(w,1);
+  double x;
+  matriz<double> xs=rec_archivo(string(argv[1]),2,x);
+  matriz<double> ys=rec_archivo(string(argv[2]),1,x);
+  revuelve(xs,ys);
+  matriz<double> X,Y;
+  separa(xs,ys,X,Y);
   vector<int> h={2,4,6,1};
   matriz<int> soonred(h,1);
   matriz<neural_l> malla=red(soonred,sigm,dsigm);
-  matriz<double> res,ver,check,res_check;double error;
-  int i=0;
-  while(true){
-    DIR* dir = opendir(("evolucion_red_"+to_string(i)).c_str());
-    if(dir) {++i;closedir(dir);continue;}
-    else break;
-  }
-  string carpeta="evolucion_red_"+to_string(i);
+  matriz<double> res,res_,ver,check,res_check;double error,error_;
+  check=matriz_cuad(-1,1,0.05);
+  int i;
   string xx=argv[1];string yy=argv[2];
-  system(("mkdir "+carpeta).c_str());
-  system(("paste "+xx+" "+yy+"> ./"+carpeta+"/datosjuntos_"+to_string(i)+".dat").c_str());
-  ofstream archivo("./"+carpeta+"/errorcito_"+to_string(i)+".dat");
-  for(int i=0;i<=2500;++i){
+  string carpeta=crea_carpeta("evolucion_red",i);
+  //system(("mkdir "+carpeta).c_str());
+  system(("paste "+xx+" "+yy+"> ./"+carpeta+"/datosjuntos_"+to_string(i)+".dat").c_str());//Falta arreglar esto sobre el overfitting
+  ofstream archivo("./"+carpeta+"/errorcito_train_"+to_string(i)+".dat");
+  ofstream archivo_("./"+carpeta+"/errorcito_try_"+to_string(i)+".dat");
+  for(int i=0;i<=3000;++i){
     if(i%25==0){
-      check=mat_rand(1000,2,-1,1);
+      //check=mat_rand(1000,2,-1,1); probemos con una NO random
       res_check=forward(malla,check);
       string a=to_string(i);
       if(i<10) a="000"+a;
@@ -44,17 +32,22 @@ int main(int argc,char* argv[]){
       ofstream archivote("./"+carpeta+"/Estado_"+a+".dat");
       for(int j=0;j<check.fila();++j){
 	archivote<<check(j,0)<<' '<<check(j,1)<<' '<<res_check(j,0)<<endl;
+	if(check(j+1,0)!=check(j,0)) archivote<<endl;
       }
       archivote.close();
     }
     res=train(malla,xs,ys,d_e_cuad_m,atof(argv[3]));
+    res_=forward(malla,X);
     if(i%100==0){
       ver=cat(ys,res);
       cout<<ver<<endl;
     }
     error=e_cuad_m(res,ys);
+    error_=e_cuad_m(res_,Y);
     archivo<<i<<' '<<error<<endl;
+    archivo_<<i<<' '<<error_<<endl;
   }
   archivo.close();
+  archivo_.close();
   return 0;
 }

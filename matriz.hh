@@ -3,6 +3,8 @@
 #include<iostream>
 #include<vector>
 #include<cmath>
+#include<fstream>
+#include<string>
 
 using namespace std;
 typedef unsigned int uint;
@@ -29,9 +31,13 @@ class matriz{
   int colu() const {return c;}//Lo mismi pero con cantidad de columnas
   matriz fila(int) const;//Entrega la fila i como nueva matriz (de 1xn)
   matriz colu(int) const;//Entrega la columna i como nueva matriz (de nx1)
-  matriz tras() const;//Entrega la traspuesta
+  matriz fila(const matriz &);//Sumo a cada fila la matriz fila
   matriz colu(const matriz &);//Sumo a cada columna la matriz columna
-	matriz fila(const matriz &); //same con fila
+  void fila(int,const matriz&) &;
+  void colu(int,const matriz&) &;
+  matriz tras() const;//Entrega la traspuesta
+  matriz triang(bool) const;
+  T det(bool=false) const;
 };
 
 /////////////////CONSTRUCTORES//////////////////
@@ -143,6 +149,44 @@ matriz<T> matriz<T>::colu(int a) const{
   return m;
 }
 
+//Cambio fila 
+template <class T>
+void matriz<T>::fila(int a,const matriz<T> &v) &{
+  if(v.fila()!=1) cout<<"Cuidado, cambio de fila erróneo"<<endl;
+  for(int i=0;i<c;++i)
+    (*this)(a,i)=v(0,i);
+}
+
+//cambio columna
+template <class T>
+void matriz<T>::colu(int a,const matriz<T> &v) &{
+  if(v.colu()!=1) cout<<"Cuidado, cambio de columna erróneo"<<endl;
+  for(int i=0;i<f;++i)
+    (*this)(i,a)=v(i,0);
+}
+
+//Suma vector columna en cada columna
+template <class T>
+matriz<T> matriz<T>::colu(const matriz<T> &m){
+  matriz<T> res(*this);
+  for(int i=0;i<res.fila();++i){
+    for(int j=0;j<res.colu();++j)
+      res(i,j)=res(i,j)+m(i,0);
+  }
+  return res;
+}
+
+//Suma vector fila en cada fila
+template <class T>
+matriz<T> matriz<T>::fila(const matriz<T> &m){
+  matriz<T> res(*this);
+  for(int i=0;i<res.fila();++i){
+    for(int j=0;j<res.colu();++j)
+      res(i,j)=res(i,j)+m(0,j);
+  }
+  return res;
+}
+
 //Devuelvo la traspuesta
 template <class T>
 matriz<T> matriz<T>::tras() const{
@@ -155,6 +199,75 @@ matriz<T> matriz<T>::tras() const{
   return m;
 }
 
+//Devuelvo matriz triangular
+template <class T>
+matriz<T> matriz<T>::triang(bool cero) const{
+  matriz<T> temp=(*this);
+  T cont;matriz<T> aux;
+  int filita;
+  for(int i=0;i<temp.fila();++i){
+    cont=temp(i,i);
+    filita=i;
+    for(int h=i;h<temp.fila();++h){
+      if(abs(temp(h,i))>cont) {cont=abs(temp(h,0));filita=h;}
+    }
+    if(filita!=i){
+      aux=temp.fila(i);
+      temp.fila(i,temp.fila(filita));
+      temp.fila(filita,aux);//Cambie las filas
+    }
+    for(int j=i+1;j<temp.fila();++j){
+      aux=temp.fila(j)-(temp(j,i)/temp(i,i))*temp.fila(i);
+      temp.fila(j,aux);
+    }
+  }
+  if(cero){
+    for(int i=0;i<temp.fila();++i){
+      for(int j=0;j<temp.colu();++j){
+	if(abs(temp(i,j))<1e-14) temp(i,j)=0;
+      }
+    }
+  }
+  return temp;
+}
+
+//Da el determinante
+template <class T>
+T matriz<T>::det(bool cero) const{
+  matriz<T> temp=(*this);
+  T cont;matriz<T> aux;
+  int contador=0;
+  int filita;
+  for(int i=0;i<temp.fila();++i){
+    cont=temp(i,i);
+    filita=i;
+    for(int h=i;h<temp.fila();++h){
+      if(abs(temp(h,i))>cont) {cont=abs(temp(h,0));filita=h;}
+    }
+    if(filita!=i){
+      aux=temp.fila(i);
+      temp.fila(i,temp.fila(filita));
+      temp.fila(filita,aux);//Cambie las filas
+      contador+=1;
+    }
+    for(int j=i+1;j<temp.fila();++j){
+      aux=temp.fila(j)-(temp(j,i)/temp(i,i))*temp.fila(i);
+      temp.fila(j,aux);
+    }
+  }
+  if(cero){
+    for(int i=0;i<temp.fila();++i){
+      for(int j=0;j<temp.colu();++j){
+	if(abs(temp(i,j))<1e-14) temp(i,j)=0;
+      }
+    }
+  }
+  T acum=T(1);
+  for(int i=0;i<temp.fila();++i)
+    acum=acum*temp(i,i);
+  if(contador%2!=0) acum=-1*acum;
+  return acum;
+}
 /////////////////////////OPERACIONES ARITMETICAS/////////////////////////
 
 //Suma entre matrices, si las dimensiones no son correctas se entrega matriz vacia y un mensaje avisando.
@@ -404,16 +517,34 @@ matriz<T> mod(const matriz<T> &m){
   return res;
 }
 
-//Mismo para para una fila o columna en especifico (por ahora solo fila)
+//Mismo para para una fila o columna en especifico (por default fila)
 template <class T>
-T mod(const matriz<T> &m,int a){
+T mod(const matriz<T> &m,int a,bool fila =true){
   T acum=0;
-  for(int i=0;i<m.colu();++i)
-    acum+=m(a,i)*m(a,i);
-  return sqrt(acum);
+  if(fila){
+    for(int i=0;i<m.colu();++i)
+      acum+=m(a,i)*m(a,i);
+    return sqrt(acum);
+  }
+  else{
+    for(int i=0;i<m.fila();++i)
+      acum+=m(i,a)*m(i,a);
+    return sqrt(acum);
+  }
 }
 
-//Obtener max de una matriz (mas adelante el minimo)
+//Obtener min de una matriz
+template <class T>
+T min(const matriz<T> &m){
+  T valorcillo=m(0,0);
+  for(int i=0;i<m.fila();++i){
+    for(int j=0;j<m.colu();++j)
+      if(m(i,j)<valorcillo) valorcillo=m(i,j);
+  }
+  return valorcillo;
+}
+
+//Obtener max de una matriz 
 template <class T>
 T max(const matriz<T> &m){
   T valorcillo=m(0,0);
@@ -434,36 +565,49 @@ void clean(matriz<T> &m,T a=0){
   }
 }
 
-//aplica cierta funcion a cada elemento de la matriz
+
+//Resuelve ecuaciones lineales, espera matriz y matriz columna (vector). Mas adelante que saque determinante y analice si es singular o no (tambien podria separar triangulacion o algo asi)
 template <class T>
-matriz<T> map(T (*f)(T),const matriz<T> &m){
-  matriz<T> res(m);
+matriz<T> sist_ec_lin(const matriz<T> &m,const matriz<T> &v,bool ceros=false){
+  matriz<T> res(v.fila(),1);
+  if(m.fila()==m.colu() && m.colu()==v.fila() && v.colu()==1){
+    matriz<T> temp=cat(m,v);
+    temp=temp.triang(ceros);
+    for(int i=temp.fila()-1;i>=0;--i){
+      res(i,0)=temp(i,temp.colu()-1)/temp(i,i);
+      for(int j=i+1;j<=temp.fila()-1;++j){
+	res(i,0)=res(i,0)-res(j,0)*(temp(i,j)/temp(i,i));
+      }
+    }
+    return res;
+  }
+  else{
+    cout<<"No se entregaron las dimensiones correctas en las matrices"<<endl;
+    return res;
+  }
+}
+
+//envio matriz archivo
+template<class T>
+void env_archivo(string nombre,const matriz<T> &m){
+  ofstream archivo(nombre);
   for(int i=0;i<m.fila();++i){
-    for(int j=0;j<m.colu();++j)
-      res(i,j)=(*f)(m(i,j));
+    for(int j=0;j<m.colu();++j){
+      archivo<<m(i,j)<<' ';
+    }
+    archivo<<endl;
   }
-  return res;
+  archivo.close();
 }
 
-//Suma vector columna en cada columna
-template <class T>
-matriz<T> matriz<T>::colu(const matriz<T> &m){
-  matriz<T> res(*this);
-  for(int i=0;i<res.fila();++i){
-    for(int j=0;j<res.colu();++j)
-      res(i,j)=res(i,j)+m(i,0);
-  }
-  return res;
-}
-
-//Suma vector fila en cada fila
-template <class T>
-matriz<T> matriz<T>::fila(const matriz<T> &m){
-  matriz<T> res(*this);
-  for(int i=0;i<res.fila();++i){
-    for(int j=0;j<res.colu();++j)
-      res(i,j)=res(i,j)+m(0,j);
-  }
+//transforma archivo en matriz, a es solo para decir que tipo es.
+template<class T>
+matriz<T> rec_archivo(string nombre,int columna,T a){
+  ifstream archivo(nombre);
+  T acum;vector<T> v;
+  while(archivo>>acum){v.push_back(acum);}
+  matriz<T> res(v,columna);
+  archivo.close();
   return res;
 }
 

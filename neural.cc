@@ -1,13 +1,21 @@
-#include "neural.h"
+#include "neural.hh"
+
+///////////FUNCIONES INTERNAS////////////////////////
 
 neural_l::neural_l(){}
 
 neural_l::neural_l(int in, int cel, double (*f)(double),double (*g)(double)){
   c_neu=cel;inp=in;
-  B=mat_rand(1,c_neu,1,-1);//normalizado
-  W=mat_rand(inp,c_neu,1,-1);//normalizado tambien
+  B=mat_rand(1,c_neu,1,-1);//normalizado y random
+  W=mat_rand(inp,c_neu,1,-1);//lo mismo
   act=(*f);//función de activación
   dact=(*g);//su derivada
+}
+
+neural_l::neural_l(const matriz<double> &b,const matriz<double> &w,double (*f)(double),double (*g)(double)){
+  c_neu=b.colu();inp=w.fila();
+  B=b;W=w;
+  act=(*f);dact=(*g);
 }
 
 neural_l neural_l::operator=(const neural_l &n){
@@ -21,7 +29,6 @@ neural_l neural_l::operator=(const neural_l &n){
   }
   return *this;
 }
-
 
 ostream & neural_l::print(ostream &os) const{
   os<<'['<<this->inp<<','<<this->c_neu<<','<<(this->W)<<(this->B)<<']';
@@ -37,6 +44,7 @@ matriz<double> & neural_l::operator[](int i){
   if(i==0) return B;
   else return W;
 }
+
 
 matriz<double> neural_l::operator()(const matriz<double> &m,int a){
   matriz<double> res(m);
@@ -62,6 +70,7 @@ int neural_l::axon(int a){
   else return c_neu;
 }
 
+//pego dos capas, resulta una matriz contenedora de estas
 matriz<neural_l> neural_l::operator+(neural_l n){
   if(this->c_neu==n.inp){
     neural_l defaul;
@@ -80,6 +89,10 @@ matriz<neural_l> neural_l::operator+(neural_l n){
 
 ostream & operator<<(ostream &os,const neural_l &n){return n.print(os);}
 
+
+
+//////////////////FUNCIONES EXTERNAS/////////////////////7
+
 //recibe matriz columna
 matriz<neural_l> red(const matriz<int> &m,double (*f)(double),double (*g)(double)){
   neural_l defaul;matriz<neural_l> res(m.fila()-1,1,defaul);
@@ -90,6 +103,7 @@ matriz<neural_l> red(const matriz<int> &m,double (*f)(double),double (*g)(double
   return res;
 }
 
+//Calculo hacia adelante
 matriz<double> forward(const matriz<neural_l> &n,const matriz<double> &x){
   matriz<double> temp=x*n(0,0)[1];//uso los pesos, resulta matriz con cada fila resultados de un dato (columna cantidad de neuronas que trabajaron)
   temp=temp.fila(n(0,0)[0]);//Sumo las b's a cada fila y luego aplico la funcion de activacion.
@@ -103,7 +117,6 @@ matriz<double> forward(const matriz<neural_l> &n,const matriz<double> &x){
 }
 
 matriz<double> train(matriz<neural_l> &n,const matriz<double> &x,const matriz<double> &y,matriz<double> (*derror)(const matriz<double> &,const matriz<double> &),double paso){
-  vector<double> erro;double err;//Para guardar cada error
   //Forward
   matriz<double> temp;matriz<matriz<double>> vals(3,n.fila()+1,temp);//matriz donde guardare los W,z's y los a's (resultados de suma ponderada +b y de activarlos) respectivamente (filas). El primer elemento son los X (en tercera fila)
   temp=x*n(0,0)[1];vals(2,0)=x;
@@ -130,6 +143,68 @@ matriz<double> train(matriz<neural_l> &n,const matriz<double> &x,const matriz<do
   return vals(2,vals.colu()-1);
 }
 
+//Desordena (asumo fila cada dato) un tercio de cambios de la cantidad de datos
+void revuelve(matriz<double> &x,matriz<double> &y){
+  if(x.fila()==y.fila()){
+    matriz<double> tempx(1,x.colu());
+    matriz<double> tempy(1,y.colu());
+    rdom cambio;
+    int a,b;
+    for(int i=0;i<(x.fila()/3)+1;++i){
+      a=cambio.irand(x.fila()-1,0);
+      b=cambio.irand(x.fila()-1,0);
+      for(int j=0;j<x.colu();++j){
+	tempx(0,j)=x(a,j);x(a,j)=x(b,j);x(b,j)=tempx(0,j);	
+      }
+      for(int j=0;j<y.colu();++j){
+	tempy(0,j)=y(a,j);y(a,j)=y(b,j);y(b,j)=tempy(0,j);
+      }
+    }
+  }
+  else
+    cout<<"No tienes la misma cantidad de datos"<<endl;
+}
+
+//Para separar la muestra total
+void separa(matriz<double> &x,matriz<double> &y,matriz<double> &xs,matriz<double> &ys,int porc){
+   if(x.fila()==y.fila()){
+     rdom cambio;cambio.upd();int a;int i=0;
+     int cant=porc*x.fila()/100;
+     matriz<double> tempxs(cant,x.colu());
+     matriz<double> tempys(cant,y.colu());
+     matriz<double> tempx(x.fila()-cant,x.colu());
+     matriz<double> tempy(x.fila()-cant,y.colu());
+     vector<int> v;
+     while(i<porc*x.fila()/100){
+       a=cambio.irand(x.fila()-1,0);
+       if(find(v.begin(), v.end(), a) != v.end()) continue;
+       else {
+	 v.push_back(a);
+	 for(int j=0;j<x.colu();++j) tempxs(i,j)=x(a,j);
+	 for(int j=0;j<y.colu();++j) tempys(i,j)=y(a,j);
+	 ++i;
+       }
+     }
+     a=0;
+     for(int i=0;i<x.fila();++i){
+       if(find(v.begin(), v.end(), i) != v.end()) continue;
+       else {
+       for(int j=0;j<x.colu();++j)
+	 tempx(a,j)=x(i,j);
+       for(int j=0;j<y.colu();++j)
+	 tempy(a,j)=y(i,j);
+       ++a;
+       }
+     }
+     x=tempx;y=tempy;
+     xs=tempxs;ys=tempys;
+   }
+   else
+     cout<<"No tienes la misma cantidad de datos"<<endl;
+}
+
+
+
 double sigm(double x){
   double a=1./(1+exp(-x));
   return a;
@@ -154,4 +229,90 @@ double e_cuad_m(const matriz<double> &y_o,const matriz<double> &y_e){
 
 matriz<double> d_e_cuad_m(const matriz<double> &y_o,const matriz<double> &y_e){
   return (y_o-y_e);
+}
+
+string crea_carpeta(string s, int &a){
+  int i=0;
+  while(true){
+    DIR* dir = opendir((s+to_string(i)).c_str());
+    if(dir) {++i;closedir(dir);continue;}
+    else break;
+  }
+  string carpeta=s+to_string(i);
+  system(("mkdir "+carpeta).c_str());
+  a=i;
+  return carpeta;
+}
+
+matriz<neural_l> red_prehecha(string s,double (*f)(double),double (*g)(double)){
+  ifstream archivo(s);
+  int capas,i,numerito;vector<int> v;
+  archivo>>capas;i=0;
+  while(i<=capas){
+    archivo>>numerito;v.push_back(numerito);++i;
+  }
+  neural_l defaul;
+  matriz<neural_l> redd(capas,1,defaul);
+  matriz<double> B;
+  double numerote;vector<double> w;bool flag=true;i=0;
+  while(archivo>>numerote){
+    w.push_back(numerote);
+    if(flag && w.size()==v[i+1]){
+      matriz<double> F(1,w);B=F;
+      w.clear();flag=!flag;
+    }
+    else if(w.size()==v[i]*v[i+1]){
+      matriz<double> W(v[i],w);
+      neural_l capa(B,W,f,g);
+      redd(i,0)=capa;
+      w.clear();flag=!flag;++i;  
+    }
+  }
+  archivo.close();
+  return redd;
+}
+
+void guarda_red(string s,const matriz<neural_l> &m){
+  ofstream archivo(s);
+  archivo<<m.fila()<<' '<<m(0,0).axon(0);
+  for(int i=0;i<m.fila();++i)
+    archivo<<' '<<m(i,0).axon(1);
+  archivo<<endl;
+  for(int i=0;i<m.fila();++i){
+    for(int j=0;j<m(i,0).axon(1);++j){
+      archivo<<m(i,0)[0](0,j)<<' ';//imprimo B
+    }
+    archivo<<endl;
+    for(int j=0;j<m(i,0).axon(0);++j){
+      for(int h=0;h<m(i,0).axon(1);++h){
+	archivo<<m(i,0)[1](j,h)<<' ';
+      }
+      archivo<<endl;
+    }
+  }
+  archivo.close();
+}
+
+matriz<double> normaliza_col(const matriz<double> &m,double Min,double Max,int a){
+  matriz<double> res(m);
+  double minn=min(m.colu(a));
+  double maxx=max(m.colu(a));
+  for(int i=0;i<m.fila();++i){
+    res(i,a)=Min+(m(i,a)-minn)*(Max-Min)/(maxx-minn);
+  }
+  return res;
+}
+
+matriz<double> matriz_cuad(double min,double max,double paso){
+  int cant=((max-min)/paso+1);
+  double minx=min;
+  double temp=min;
+  matriz<double> res(cant*cant,2);
+  int i=0;
+  while(i<res.fila()){
+    res(i,0)=minx;res(i,1)=min;
+    ++i;min+=paso;
+    if(min>max){min=temp;minx+=paso;}
+  }
+  return res;
 }
