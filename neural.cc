@@ -316,3 +316,51 @@ matriz<double> matriz_cuad(double min,double max,double paso){
   }
   return res;
 }
+
+//Para saber a que orden de magnitud pertenece
+int pot_10(int a){
+  int i=0;
+  while(a>=10){a=a/10.;++i;}
+  return i;
+}
+
+//Recibe malla neuronal, datos x, datos y,string de nombre de quien recibe el error, cuantas iteraciones, si checkear o no, y de chequear cada cuanto.
+void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz<double> &y,double learn_rate,string carpeta,int itera,bool check,int cada_cuanto){
+  ofstream errorcito("./"+carpeta+"/error.dat");
+  matriz<double> res;double errorcillo;
+  if(check){
+    matriz<double> res_check;
+    double maxx=max(x);double minn=min(x);
+    matriz<double> check=matriz_cuad(minn,maxx,0.1);
+    for(int i=0;i<=itera;++i){
+      if(i%cada_cuanto==0){
+	res_check=forward(malla,check);
+	string cant_ceros;
+	if(pot_10(itera)>pot_10(i)){
+	  cant_ceros="0";
+	  for(int j=1;j<(pot_10(itera)-pot_10(i));++j)
+	    cant_ceros=cant_ceros+"0";
+	}
+	ofstream estado("./"+carpeta+"/Estado_"+cant_ceros+to_string(i)+".dat");
+	for(int j=0;j<check.fila();++j){
+	  estado<<check(j,0)<<' '<<check(j,1)<<' '<<res_check(j,0)<<endl;
+	  if(check(j+1,0)!=check(j,0)) estado<<endl;
+	}
+	estado.close();
+      }
+      res=train(malla,x,y,d_e_cuad_m,learn_rate);
+      errorcillo=e_cuad_m(res,y);
+      cout<<errorcillo<<endl;
+      errorcito<<i<<' '<<errorcillo<<endl;
+    }
+    errorcito.close();
+  }
+  else{
+    for(int i=0;i<=itera;++i){
+      res=train(malla,x,y,d_e_cuad_m,learn_rate);
+      errorcillo=e_cuad_m(res,y);
+      cout<<errorcillo<<endl;
+      errorcito<<i<<' '<<errorcillo<<endl;
+    }
+  }
+}

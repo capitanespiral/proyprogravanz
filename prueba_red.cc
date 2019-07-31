@@ -17,7 +17,6 @@ int main(int argc,char* argv[]){
   int i;
   string xx=argv[1];string yy=argv[2];
   string carpeta=crea_carpeta("evolucion_red",i);
-  //system(("mkdir "+carpeta).c_str());
   system(("paste "+xx+" "+yy+"> ./"+carpeta+"/datosjuntos_"+to_string(i)+".dat").c_str());//Falta arreglar esto sobre el overfitting
   ofstream archivo("./"+carpeta+"/errorcito_train_"+to_string(i)+".dat");
   ofstream archivo_("./"+carpeta+"/errorcito_try_"+to_string(i)+".dat");

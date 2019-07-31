@@ -75,4 +75,6 @@ matriz<double> normaliza_col(const matriz<double> &,double,double,int);
 //Matriz de dos columnas guardando puntos de un cuadrado desde min a max avanzando a paso.(Para la imagenes de convergencia)
 matriz<double> matriz_cuad(double,double,double);
 
+void entrena_guarda(matriz<neural_l> &,const matriz<double> &,const matriz<double> &,double,string ,int ,bool = true,int = 25);
+
 #endif
