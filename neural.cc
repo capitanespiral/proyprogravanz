@@ -326,21 +326,29 @@ int pot_10(int a){
 
 //Recibe malla neuronal, datos x, datos y,string de nombre de quien recibe el error, cuantas iteraciones, si checkear o no, y de chequear cada cuanto.
 void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz<double> &y,double learn_rate,string carpeta,int itera,bool check,int cada_cuanto){
+  //Creo archivo donde guardo el error y dos variables generales
   ofstream errorcito("./"+carpeta+"/error.dat");
   matriz<double> res;double errorcillo;
+  //Si es que quiero chequear
   if(check){
+    //Creo variables importantes para chequear
     matriz<double> res_check;
     double maxx=max(x);double minn=min(x);
     matriz<double> check=matriz_cuad(minn,maxx,0.1);
+    //Loop principal
     for(int i=0;i<=itera;++i){
+      //Si toca chequear
       if(i%cada_cuanto==0){
+	//Uso la red pero no la entreno
 	res_check=forward(malla,check);
+	//Para tener la cantidad de ceros necesario (y guardar en orden)
 	string cant_ceros;
 	if(pot_10(itera)>pot_10(i)){
 	  cant_ceros="0";
 	  for(int j=1;j<(pot_10(itera)-pot_10(i));++j)
 	    cant_ceros=cant_ceros+"0";
 	}
+	//Creo y guardo el estado actual
 	ofstream estado("./"+carpeta+"/Estado_"+cant_ceros+to_string(i)+".dat");
 	for(int j=0;j<check.fila();++j){
 	  estado<<check(j,0)<<' '<<check(j,1)<<' '<<res_check(j,0)<<endl;
@@ -348,19 +356,87 @@ void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz
 	}
 	estado.close();
       }
+      //Entreno la red y guardo el error.
       res=train(malla,x,y,d_e_cuad_m,learn_rate);
       errorcillo=e_cuad_m(res,y);
-      cout<<errorcillo<<endl;
+      cout<<"Error -> "<<errorcillo<<endl;
       errorcito<<i<<' '<<errorcillo<<endl;
     }
     errorcito.close();
   }
   else{
+    //Solo entreno
     for(int i=0;i<=itera;++i){
       res=train(malla,x,y,d_e_cuad_m,learn_rate);
       errorcillo=e_cuad_m(res,y);
-      cout<<errorcillo<<endl;
+      cout<<"Error -> "<<errorcillo<<endl;
       errorcito<<i<<' '<<errorcillo<<endl;
     }
+    errorcito.close();
+  }
+}
+
+
+//Same pero para overfitting
+//Recibe malla neuronal, datos x, datos y,string de nombre de quien recibe el error, cuantas iteraciones, si checkear o no, y de chequear cada cuanto.
+void entrena_guarda_overf(matriz<neural_l> &malla,const matriz<double> &x,const matriz<double> &y,const matriz<double> &xs,const matriz<double> &ys,double learn_rate,string carpeta,int itera,bool check,int cada_cuanto){
+  //Creo archivo donde guardo el error y dos variables generales
+  ofstream errorcito("./"+carpeta+"/error_train.dat");
+  ofstream errorcito_("./"+carpeta+"/error_try.dat");
+  matriz<double> res,res_;double errorcillo,errorcillo_;
+  //Si es que quiero chequear
+  if(check){
+    //Creo variables importantes para chequear
+    matriz<double> res_check;
+    double maxx=max(x);double minn=min(x);
+    if(maxx<max(xs)) maxx=max(xs);
+    if(minn>min(xs)) minn=min(xs);
+    matriz<double> check=matriz_cuad(minn,maxx,0.1);
+    //Loop principal
+    for(int i=0;i<=itera;++i){
+      //Si toca chequear
+      if(i%cada_cuanto==0){
+	//Uso la red pero no la entreno
+	res_check=forward(malla,check);
+	//Para tener la cantidad de ceros necesario (y guardar en orden)
+	string cant_ceros;
+	if(pot_10(itera)>pot_10(i)){
+	  cant_ceros="0";
+	  for(int j=1;j<(pot_10(itera)-pot_10(i));++j)
+	    cant_ceros=cant_ceros+"0";
+	}
+	//Creo y guardo el estado actual
+	ofstream estado("./"+carpeta+"/Estado_"+cant_ceros+to_string(i)+".dat");
+	for(int j=0;j<check.fila();++j){
+	  estado<<check(j,0)<<' '<<check(j,1)<<' '<<res_check(j,0)<<endl;
+	  if(check(j+1,0)!=check(j,0)) estado<<endl;
+	}
+	estado.close();
+      }
+      //Entreno la red y guardo el error.
+      res=train(malla,x,y,d_e_cuad_m,learn_rate);
+      res_=forward(malla,xs);
+      errorcillo=e_cuad_m(res,y);
+      errorcillo_=e_cuad_m(res_,ys);
+      cout<<"Error train -> "<<errorcillo<<" Error try -> "<<errorcillo_<<endl;
+      errorcito<<i<<' '<<errorcillo<<endl;
+      errorcito_<<i<<' '<<errorcillo_<<endl;
+    }
+    errorcito.close();
+    errorcito_.close();
+  }
+  else{
+    //Solo entreno
+    for(int i=0;i<=itera;++i){
+      res=train(malla,x,y,d_e_cuad_m,learn_rate);
+      res_=forward(malla,xs);
+      errorcillo=e_cuad_m(res,y);
+      errorcillo_=e_cuad_m(res_,ys);
+      cout<<"Error train -> "<<errorcillo<<" Error try -> "<<errorcillo_<<endl;
+      errorcito<<i<<' '<<errorcillo<<endl;
+      errorcito_<<i<<' '<<errorcillo_<<endl;
+    }
+    errorcito.close();
+    errorcito_.close();
   }
 }

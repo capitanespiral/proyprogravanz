@@ -77,4 +77,5 @@ matriz<double> matriz_cuad(double,double,double);
 
 void entrena_guarda(matriz<neural_l> &,const matriz<double> &,const matriz<double> &,double,string ,int ,bool = true,int = 25);
 
+void entrena_guarda_overf(matriz<neural_l> &,const matriz<double> &x,const matriz<double> &,const matriz<double> &,const matriz<double> &,double,string,int,bool,int);
 #endif
