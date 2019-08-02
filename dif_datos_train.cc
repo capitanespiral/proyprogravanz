@@ -1,6 +1,7 @@
 #include "neural.hh"
 
 int main(int argc,char* argv[]){
+  //Mensaje por si fltan variables
   if(argc!=4) {cout<<"Introduzca datos en x, datos en y (esperados) y ratio de aprendizaje"<<' '<<argc<<endl;return 0;}
   //Variables generales
   int i,j;double a;matriz<double> x,y;char over;vector<int> estruc={2,4,4,1};bool check=false;char normal='n';
@@ -64,7 +65,7 @@ int main(int argc,char* argv[]){
     cout<<"Listo!, todo guardado en "+carpeta<<endl;
     return 0;
   }
-  
+  //Si nada calza
   else {cout<<"Opción no existente, se saldrá del programa"<<endl;return 0;}
   return 0;
 }
