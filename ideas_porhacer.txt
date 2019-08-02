@@ -1,14 +1,9 @@
-Modalidad over-fiting incluida (ordenar y encapsular esta)
-Creador de formas de datos?
-Separar en carpetas distintas funcionalidades (separacion de datos y recreacion de funciones)
-mejorar makefile para ordenar programitas a usar 
 mas funciones de activacion
 modulacion de datos de entrada
 probar con funciones
-herramienta "normalizadora"
 funcion de prueba de progra
 desentrañar parte matematica y hacer informe
-portar funciones de prueba en .cc
 comentar bien y ordenar
-que lea automaticamente la cantidad de columnas de los datos
 separar por funcionalidades de redes neuronales las funciones internas (osea ordenar)
+guardar varias redes que funcionan bien
+

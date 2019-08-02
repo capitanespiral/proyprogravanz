@@ -69,13 +69,10 @@ matriz<neural_l> red_prehecha(string,double (*f)(double),double (*g)(double));
 //Guardo red en archivo llamado string.
 void guarda_red(string,const matriz<neural_l> &);
 
-//Devuelve matriz normalizada, recibe la a normalizar, el nuevo valor minimo y el maximo. (Puedo usar esta misma para desnormalizar) al final recibe columna a normalizar.
-matriz<double> normaliza_col(const matriz<double> &,double,double,int);
-
 //Matriz de dos columnas guardando puntos de un cuadrado desde min a max avanzando a paso.(Para la imagenes de convergencia)
 matriz<double> matriz_cuad(double,double,double);
 
-void entrena_guarda(matriz<neural_l> &,const matriz<double> &,const matriz<double> &,double,string ,int ,bool = true,int = 25);
+void entrena_guarda(matriz<neural_l> &,const matriz<double> &,const matriz<double> &,double,string ,int ,bool ,int,char);
 
-void entrena_guarda_overf(matriz<neural_l> &,const matriz<double> &x,const matriz<double> &,const matriz<double> &,const matriz<double> &,double,string,int,bool,int);
+void entrena_guarda_overf(matriz<neural_l> &,const matriz<double> &x,const matriz<double> &,const matriz<double> &,const matriz<double> &,double,string,int,bool,int,char);
 #endif

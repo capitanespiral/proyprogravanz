@@ -642,4 +642,18 @@ matriz<T> prom(const matriz<T> &m){
 	return res;
 }
 
+//Entrega lo que queda de la izquierda y transforma la segunda entregada en lo de la derecha. A la derecha de lo asignado, por ahora solo de columnas
+template<class T>
+matriz<T> split(const matriz<T> &m,matriz<T> &n, int a){
+  matriz<T> res(m.fila(),a+1);
+  matriz<T> res1(m.fila(),m.colu()-(a+1));
+  for(int i=0;i<m.fila();++i){
+    for(int j=0;j<m.colu();++j){
+      if(j<a+1) res(i,j)=m(i,j);
+      else res1(i,j-(a+1))=m(i,j);
+    }
+  }
+  n=res1;
+  return res;
+}
 #endif

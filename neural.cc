@@ -293,15 +293,6 @@ void guarda_red(string s,const matriz<neural_l> &m){
   archivo.close();
 }
 
-matriz<double> normaliza_col(const matriz<double> &m,double Min,double Max,int a){
-  matriz<double> res(m);
-  double minn=min(m.colu(a));
-  double maxx=max(m.colu(a));
-  for(int i=0;i<m.fila();++i){
-    res(i,a)=Min+(m(i,a)-minn)*(Max-Min)/(maxx-minn);
-  }
-  return res;
-}
 
 matriz<double> matriz_cuad(double min,double max,double paso){
   int cant=((max-min)/paso+1);
@@ -325,10 +316,16 @@ int pot_10(int a){
 }
 
 //Recibe malla neuronal, datos x, datos y,string de nombre de quien recibe el error, cuantas iteraciones, si checkear o no, y de chequear cada cuanto.
-void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz<double> &y,double learn_rate,string carpeta,int itera,bool check,int cada_cuanto){
+void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz<double> &y,double learn_rate,string carpeta,int itera,bool check,int cada_cuanto,char normaliza){
   //Creo archivo donde guardo el error y dos variables generales
   ofstream errorcito("./"+carpeta+"/error.dat");
-  matriz<double> res;double errorcillo;
+  matriz<double> res;double errorcillo,miny,maxy;
+  matriz<double> tempy(y);
+  //Normalizar de ser necesario
+  if(normaliza=='s'){
+    miny=min(y);maxy=max(y);
+    tempy=normaliza_todo(y,0,1);
+  }
   //Si es que quiero chequear
   if(check){
     //Creo variables importantes para chequear
@@ -350,6 +347,7 @@ void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz
 	}
 	//Creo y guardo el estado actual
 	ofstream estado("./"+carpeta+"/Estado_"+cant_ceros+to_string(i)+".dat");
+	if(normaliza=='s') res_check=normaliza_todo(res_check,miny,maxy);
 	for(int j=0;j<check.fila();++j){
 	  estado<<check(j,0)<<' '<<check(j,1)<<' '<<res_check(j,0)<<endl;
 	  if(check(j+1,0)!=check(j,0)) estado<<endl;
@@ -357,8 +355,8 @@ void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz
 	estado.close();
       }
       //Entreno la red y guardo el error.
-      res=train(malla,x,y,d_e_cuad_m,learn_rate);
-      errorcillo=e_cuad_m(res,y);
+      res=train(malla,x,tempy,d_e_cuad_m,learn_rate);
+      errorcillo=e_cuad_m(res,tempy);
       cout<<"Error -> "<<errorcillo<<endl;
       errorcito<<i<<' '<<errorcillo<<endl;
     }
@@ -367,8 +365,8 @@ void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz
   else{
     //Solo entreno
     for(int i=0;i<=itera;++i){
-      res=train(malla,x,y,d_e_cuad_m,learn_rate);
-      errorcillo=e_cuad_m(res,y);
+      res=train(malla,x,tempy,d_e_cuad_m,learn_rate);
+      errorcillo=e_cuad_m(res,tempy);
       cout<<"Error -> "<<errorcillo<<endl;
       errorcito<<i<<' '<<errorcillo<<endl;
     }
@@ -379,11 +377,19 @@ void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz
 
 //Same pero para overfitting
 //Recibe malla neuronal, datos x, datos y,string de nombre de quien recibe el error, cuantas iteraciones, si checkear o no, y de chequear cada cuanto.
-void entrena_guarda_overf(matriz<neural_l> &malla,const matriz<double> &x,const matriz<double> &y,const matriz<double> &xs,const matriz<double> &ys,double learn_rate,string carpeta,int itera,bool check,int cada_cuanto){
+void entrena_guarda_overf(matriz<neural_l> &malla,const matriz<double> &x,const matriz<double> &y,const matriz<double> &xs,const matriz<double> &ys,double learn_rate,string carpeta,int itera,bool check,int cada_cuanto,char normaliza){
   //Creo archivo donde guardo el error y dos variables generales
   ofstream errorcito("./"+carpeta+"/error_train.dat");
   ofstream errorcito_("./"+carpeta+"/error_try.dat");
-  matriz<double> res,res_;double errorcillo,errorcillo_;
+  matriz<double> tempy(y);matriz<double> tempys(ys);
+  matriz<double> res,res_;double errorcillo,errorcillo_,miny,maxy;
+  if(normaliza=='s'){
+    miny=min(y);maxy=max(y);
+    double minys=min(ys);double maxys=max(ys);
+    if(miny>minys) miny=minys;
+    if(maxy<maxys) maxy=maxys;
+    tempy=normaliza_todo(y,0,1);tempys=normaliza_todo(ys,0,1);
+  }
   //Si es que quiero chequear
   if(check){
     //Creo variables importantes para chequear
@@ -407,6 +413,7 @@ void entrena_guarda_overf(matriz<neural_l> &malla,const matriz<double> &x,const 
 	}
 	//Creo y guardo el estado actual
 	ofstream estado("./"+carpeta+"/Estado_"+cant_ceros+to_string(i)+".dat");
+	if(normaliza=='s') res_check=normaliza_todo(res_check,miny,maxy);
 	for(int j=0;j<check.fila();++j){
 	  estado<<check(j,0)<<' '<<check(j,1)<<' '<<res_check(j,0)<<endl;
 	  if(check(j+1,0)!=check(j,0)) estado<<endl;
@@ -414,10 +421,10 @@ void entrena_guarda_overf(matriz<neural_l> &malla,const matriz<double> &x,const 
 	estado.close();
       }
       //Entreno la red y guardo el error.
-      res=train(malla,x,y,d_e_cuad_m,learn_rate);
+      res=train(malla,x,tempy,d_e_cuad_m,learn_rate);
       res_=forward(malla,xs);
-      errorcillo=e_cuad_m(res,y);
-      errorcillo_=e_cuad_m(res_,ys);
+      errorcillo=e_cuad_m(res,tempy);
+      errorcillo_=e_cuad_m(res_,tempys);
       cout<<"Error train -> "<<errorcillo<<" Error try -> "<<errorcillo_<<endl;
       errorcito<<i<<' '<<errorcillo<<endl;
       errorcito_<<i<<' '<<errorcillo_<<endl;
@@ -428,10 +435,10 @@ void entrena_guarda_overf(matriz<neural_l> &malla,const matriz<double> &x,const 
   else{
     //Solo entreno
     for(int i=0;i<=itera;++i){
-      res=train(malla,x,y,d_e_cuad_m,learn_rate);
+      res=train(malla,x,tempy,d_e_cuad_m,learn_rate);
       res_=forward(malla,xs);
-      errorcillo=e_cuad_m(res,y);
-      errorcillo_=e_cuad_m(res_,ys);
+      errorcillo=e_cuad_m(res,tempy);
+      errorcillo_=e_cuad_m(res_,tempys);
       cout<<"Error train -> "<<errorcillo<<" Error try -> "<<errorcillo_<<endl;
       errorcito<<i<<' '<<errorcillo<<endl;
       errorcito_<<i<<' '<<errorcillo_<<endl;
@@ -440,3 +447,6 @@ void entrena_guarda_overf(matriz<neural_l> &malla,const matriz<double> &x,const 
     errorcito_.close();
   }
 }
+
+
+

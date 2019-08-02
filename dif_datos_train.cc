@@ -1,12 +1,14 @@
 #include "neural.hh"
 
 int main(int argc,char* argv[]){
-  if(argc!=6) {cout<<"Introduzca datos y cant. de columnas en x, datos y cant. de columnas en y (esperados) y ratio de aprendizaje"<<' '<<argc<<endl;return 0;}
+  if(argc!=4) {cout<<"Introduzca datos en x, datos en y (esperados) y ratio de aprendizaje"<<' '<<argc<<endl;return 0;}
   //Variables generales
-  int i,j;double a;matriz<double> x,y;char over;vector<int> estruc={atoi(argv[2]),4,6,atoi(argv[4])};bool check=false;
+  int i,j;double a;matriz<double> x,y;char over;vector<int> estruc={2,4,4,1};bool check=false;char normal='n';
   //Guardo ambos archivos en matrices
-  x=rec_archivo(argv[1],atoi(argv[2]),a);
-  y=rec_archivo(argv[3],atoi(argv[4]),a);
+  x=rec_archivo(argv[1],2,a);
+  y=rec_archivo(argv[2],1,a);
+  //Por si es necesario normalizar
+  if(max(y)>1 || min(y)<0) normal='s';
   //Creo la malla, aquí se puede cambiar la funcion activadora (y su derivada claramente) si se desea.
   matriz<int> soonred(estruc,1);
   matriz<neural_l> malla=red(soonred,sigm,dsigm);
@@ -18,7 +20,7 @@ int main(int argc,char* argv[]){
   //Sin estudio de sobrefiteo
   if(over=='n'){
     //Creo archivo de ambos datos pegados para poder graficar mejor
-    system(("paste "+string(argv[1])+" "+string(argv[3])+"> ./"+carpeta+"/datosjuntos.dat").c_str());
+    system(("paste "+string(argv[1])+" "+string(argv[2])+"> ./"+carpeta+"/datosjuntos.dat").c_str());
     //Datos para entrenar
     cout<<"¿Cuantas iteraciones?"<<endl;cin>>i;
     cout<<"¿Desea chequear los datos? (s o n)"<<endl;cin>>over;
@@ -27,7 +29,7 @@ int main(int argc,char* argv[]){
       cout<<"¿Cada cuantas iteraciones?"<<endl;cin>>j;
     }
     //Entreno la red
-    entrena_guarda(malla,x,y,atof(argv[5]),carpeta,i,check,j);
+    entrena_guarda(malla,x,y,atof(argv[3]),carpeta,i,check,j,normal);
     //si deseo guardar la red
     cout<<"¿Guardar la red? (s o n)"<<endl;cin>>over;
     if(over=='s') guarda_red("./"+carpeta+"/red.nn",malla);
@@ -55,7 +57,7 @@ int main(int argc,char* argv[]){
       cout<<"¿Cada cuantas iteraciones?"<<endl;cin>>j;
     }
     //Entreno considerando overfitting
-    entrena_guarda_overf(malla,x,y,xs,ys,atof(argv[5]),carpeta,i,check,j);
+    entrena_guarda_overf(malla,x,y,xs,ys,atof(argv[3]),carpeta,i,check,j,normal);
     //si deseo guardar la red
     cout<<"¿Guardar la red? (s o n)"<<endl;cin>>over;
     if(over=='s') guarda_red("./"+carpeta+"/red.nn",malla);

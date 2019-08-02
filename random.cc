@@ -67,7 +67,8 @@ matriz<double> noise(const matriz<double> &m,double ruido,int num,bool columna){
   }
 }
 
-matriz<double> dat_func(double (*f)(double),double first,double last,int pts){
+//de r a r
+matriz<double> dat_func1(double (*f)(double),double first,double last,int pts){
   matriz<double> res(pts,2);
   double sep=(last-first)/pts;
   for(int i=0;i<res.fila();++i){
@@ -77,41 +78,39 @@ matriz<double> dat_func(double (*f)(double),double first,double last,int pts){
   return res;
 }
 
-/*matriz<double> distr(double (*f)(double),double minf,double maxf,double minx,double maxx,char c,int pts){
-  rdom random;
-  double x,y,eval;
-  matriz<double> res(pts,2);
-  int cont=0; //cuantos puntos llevo
-  if(c=='f'){
-    while(cont<pts){
-      x=random.drand(maxx,minx);
-      y=random.drand(maxf+(maxf-minf)/10,minf-(maxf-minf)/10);
-      eval=(*f)(x);
-      if(y<eval){
-	res(cont,0)=x;res(cont,1)=(*f)(x);
-	++cont;
-      }
-    }
+//Evaluar funcion que recibe dos numeros y entrega numero
+matriz<double> dat_func2(double (*f)(double,double),double start,double fin,double paso){
+  int cant=((fin-start)/paso+1);
+  double minx=start;
+  double temp=start;
+  matriz<double> res(cant*cant,3);
+  int i=0;
+  while(i<res.fila()){
+    res(i,0)=minx;res(i,1)=start;res(i,2)=(*f)(res(i,0),res(i,1));
+    ++i;start+=paso;
+    if(start>fin){start=temp;minx+=paso;}
   }
   return res;
 }
 
-//Como hacerlo para histograma? si tengo una funcion que ordene dentro de la matriz de menor a mayor basta armarlo ordenadito luego de tener todos los datos!. Seria genial hacerlo todo dentro del mismo while pero no veo como :C
-matriz<double> distr(double (*f)(double),double minf,double maxf,double minx,double maxx,int barr,int pts){
-  rdom random;
-  double ampli=(maxx-minx)/barr;
-  double x,y,eval;
-  matriz<doubl;
-  int cont=0; //cuantos puntos llevo
-  while(cont<pts){
-    x=random.drand(maxx,minx);
-    y=random.drand(maxf+(maxf-minf)/10,minf-(maxf-minf)/10);
-    eval=(*f)(x);
-    if(y<eval){
-      res(cont,0)=x;
-      ++cont;
+matriz<double> normaliza_col(const matriz<double> &m,double Min,double Max,int a){
+  matriz<double> res(m);
+  double minn=min(m.colu(a));
+  double maxx=max(m.colu(a));
+  for(int i=0;i<m.fila();++i){
+    res(i,a)=Min+(m(i,a)-minn)*(Max-Min)/(maxx-minn);
+  }
+  return res;
+}
+
+matriz<double> normaliza_todo(const matriz<double> &m, double Min, double Max){
+  matriz<double> res(m);
+  double minn=min(m);
+  double maxx=max(m);
+  for(int i=0;i<m.fila();++i){
+    for(int j=0;j<m.colu();++j){
+      res(i,j)=Min+(m(i,j)-minn)*(Max-Min)/(maxx-minn);
     }
   }
   return res;
-}*/
-
+}

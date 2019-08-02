@@ -28,11 +28,16 @@ matriz<double> distr(double (*f)(double),double,double,double,double,int=100);//
 matriz<double> noise(const matriz<double> &,double,int=1,bool=true);
 
 //Crea matriz de columna x y columna y, con que funcion, desde donde hasta donde,cuantos datos.
-matriz<double> dat_func(double (*f)(double),double,double,int);
+matriz<double> dat_func1(double (*f)(double),double,double,int);
 
-/*matriz<double> distr(double (*f)(double),double,double,double,double,char,int=100);
+matriz<double> dat_func2(double (*f)(double,double),double ,double ,double );
 
-//para histograma
-matriz<double> distr(double (*f)(double),double,double,double,double,int=10,int=100);*/
+//Devuelve matriz normalizada, recibe la a normalizar, el nuevo valor minimo y el maximo. (Puedo usar esta misma para desnormalizar) al final recibe columna a normalizar.
+matriz<double> normaliza_col(const matriz<double> &,double,double,int);
+
+//Que nomrmalice toda la matriz
+matriz<double> normaliza_todo(const matriz<double> &,double,double);
+
+
 
 #endif
