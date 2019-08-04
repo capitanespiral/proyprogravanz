@@ -1,9 +1,0 @@
-mas funciones de activacion
-modulacion de datos de entrada
-probar con funciones
-funcion de prueba de progra
-desentrañar parte matematica y hacer informe
-comentar bien y ordenar
-separar por funcionalidades de redes neuronales las funciones internas (osea ordenar)
-guardar varias redes que funcionan bien
-

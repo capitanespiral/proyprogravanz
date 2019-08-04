@@ -136,7 +136,7 @@ matriz<double> train(matriz<neural_l> &n,const matriz<double> &x,const matriz<do
   //Backward
   //Limpio temp y la uso para crear matriz de matrices donde guardare las deltas (para modificar la red)
   clean(temp);matriz<matriz<double>> deltas(1,n.fila(),temp);
-  //Calculo primera delta (de la ultima capa)
+  //Calculo primeras deltas (de la ultima capa)
   deltas(0,n.fila()-1)=mul_ele((*derror)(vals(2,vals.colu()-1),y),n(n.fila()-1,0)(vals(1,vals.colu()-1),1));
   //Modifico valores de output capa
   n(n.fila()-1,0)[0]=n(n.fila()-1,0)[0]-paso*prom(deltas(0,n.fila()-1));
@@ -285,7 +285,7 @@ void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz
     //Creo variables importantes para chequear
     matriz<double> res_check;
     double maxx=max(x);double minn=min(x);
-    matriz<double> check=matriz_cuad(minn,maxx,0.1);
+    matriz<double> check=matriz_cuad(minn-minn/10.,maxx+maxx/10.,0.1);
     //Loop principal
     for(int i=0;i<=itera;++i){
       //Si toca chequear
@@ -315,7 +315,7 @@ void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz
       res=train(malla,x,tempy,d_e_cuad_m,learn_rate);
       errorcillo=e_cuad_m(res,tempy);
       //Lo imprimo para ver evolucion de red en pantalla
-      cout<<"Error -> "<<errorcillo<<endl;
+      cout<<"Iteracion: "<<i<<" Error -> "<<errorcillo<<endl;
       errorcito<<i<<' '<<errorcillo<<endl;
     }
     errorcito.close();
@@ -326,7 +326,7 @@ void entrena_guarda(matriz<neural_l> &malla,const matriz<double> &x,const matriz
     for(int i=0;i<=itera;++i){
       res=train(malla,x,tempy,d_e_cuad_m,learn_rate);
       errorcillo=e_cuad_m(res,tempy);
-      cout<<"Error -> "<<errorcillo<<endl;
+      cout<<"Iteracion: "<<i<<" Error -> "<<errorcillo<<endl;
       errorcito<<i<<' '<<errorcillo<<endl;
     }
     errorcito.close();
@@ -447,7 +447,7 @@ void entrena_guarda_overf(matriz<neural_l> &malla,const matriz<double> &x,const 
       res_=forward(malla,xs);
       errorcillo=e_cuad_m(res,tempy);
       errorcillo_=e_cuad_m(res_,tempys);
-      cout<<"Error train -> "<<errorcillo<<" Error try -> "<<errorcillo_<<endl;
+      cout<<"Iteracion: "<<i<<" Error train -> "<<errorcillo<<" Error try -> "<<errorcillo_<<endl;
       errorcito<<i<<' '<<errorcillo<<endl;
       errorcito_<<i<<' '<<errorcillo_<<endl;
     }
@@ -461,7 +461,7 @@ void entrena_guarda_overf(matriz<neural_l> &malla,const matriz<double> &x,const 
       res_=forward(malla,xs);
       errorcillo=e_cuad_m(res,tempy);
       errorcillo_=e_cuad_m(res_,tempys);
-      cout<<"Error train -> "<<errorcillo<<" Error try -> "<<errorcillo_<<endl;
+      cout<<"Iteracion: "<<i<<" Error train -> "<<errorcillo<<" Error try -> "<<errorcillo_<<endl;
       errorcito<<i<<' '<<errorcillo<<endl;
       errorcito_<<i<<' '<<errorcillo_<<endl;
     }

@@ -2,17 +2,24 @@
 
 int main(int argc,char* argv[]){
   //Mensaje por si fltan variables
-  if(argc!=4) {cout<<"Introduzca datos en x, datos en y (esperados) y ratio de aprendizaje"<<' '<<argc<<endl;return 0;}
+  if(argc<4 || argc>5) {cout<<"Introduzca datos en x, datos en y (esperados) y ratio de aprendizaje, y opcional red al final"<<' '<<argc<<endl;return 0;}
   //Variables generales
-  int i,j;double a;matriz<double> x,y;char over;vector<int> estruc={2,4,4,1};bool check=false;char normal='n';
+  int i,j;double a;matriz<double> x,y;char over;bool check=false;char normal='n';neural_l defaul;matriz<neural_l> malla(1,1,defaul);
   //Guardo ambos archivos en matrices
   x=rec_archivo(argv[1],2,a);
   y=rec_archivo(argv[2],1,a);
   //Por si es necesario normalizar
   if(max(y)>1 || min(y)<0) normal='s';
   //Creo la malla, aquí se puede cambiar la funcion activadora (y su derivada claramente) si se desea.
-  matriz<int> soonred(estruc,1);
-  matriz<neural_l> malla=red(soonred,sigm,dsigm);
+  if(argc==4){
+    vector<int> estruc={2,4,6,6,6,4,1};
+    matriz<int> soonred(estruc,1);
+    malla=red(soonred,sigm,dsigm);
+  }
+  else{
+    malla=red_prehecha(argv[4],sigm,dsigm);
+  }
+  
   //Creo carpeta de tal nombre sin sobreescribir ninguna anterior
   //Y archivo donde guardaré la evolucion del error
   string carpeta=crea_carpeta("evolucion_red",i);
